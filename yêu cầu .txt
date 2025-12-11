@@ -1,0 +1,5 @@
+Thế em tìm hiểu laravel, react, mongodb, redis. Rồi hoàn thiện 1 trang web blog đơn giản có các tính năng liên quan đến các bảng sau
+1. User
+2. Category
+3. Post
+4. Comment
