@@ -11,14 +11,16 @@ use MongoDB\Laravel\Eloquent\Model as Eloquent;
 use Laravel\Sanctum\HasApiTokens;
 use DateTimeInterface;
 use Illuminate\Support\Str;
-use App\Models\NewAccessToken;
+use App\Models\NewAccessTokenn;
 
 class User extends Eloquent implements AuthenticatableContract, AuthorizableContract
 {
     use HasApiTokens, HasFactory, Authenticatable, Authorizable;
 
     protected $connection = 'mongodb';
-    protected $table = 'users';
+    protected $collection ='users'; 
+
+
 
     /**
      * The attributes that are mass assignable.
@@ -26,7 +28,7 @@ class User extends Eloquent implements AuthenticatableContract, AuthorizableCont
      * @var array<int, string>
      */
     protected $fillable = [
-        'name',
+        'name', 
         'email',
         'password',
         'role',

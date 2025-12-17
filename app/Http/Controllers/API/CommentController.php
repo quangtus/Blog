@@ -13,6 +13,13 @@ class CommentController extends Controller
 {
     /**
      * Display a listing of comments for a post
+     * 
+     * IPO Analysis:
+     * - INPUT: post_id (required), user auth (optional)
+     * - PROCESS: Query comments with conditions
+     * - OUTPUT: JSON array of comments
+     * 
+     * Logic: Hiển thị comments approved + pending của chính user đang đăng nhập
      */
     public function index(Request $request)
     {
@@ -26,12 +33,44 @@ class CommentController extends Controller
             return response()->json(['message' => 'Post not found'], 404);
         }
 
+        $currentUserId = $request->user()?->_id;
+
         $comments = Comment::where('post_id', $request->post_id)
-            ->where('status', 'approved')
+            ->where(function($query) use ($currentUserId) {
+                // Hiển thị: approved OR pending của chính user
+                $query->where('status', 'approved');
+                if ($currentUserId) {
+                    $query->orWhere(function($q) use ($currentUserId) {
+                        $q->where('status', 'pending')
+                          ->where('user_id', $currentUserId);
+                    });
+                }
+            })
             ->with(['user', 'replies.user'])
             ->whereNull('parent_id')
             ->orderBy('created_at', 'desc')
             ->get();
+
+        return response()->json($comments);
+    }
+
+    /**
+     * Get all comments for admin (including pending)
+     * 
+     * IPO Analysis:
+     * - INPUT: status filter (optional)
+     * - PROCESS: Query all comments
+     * - OUTPUT: JSON array with pagination
+     */
+    public function adminIndex(Request $request)
+    {
+        $query = Comment::with(['user', 'post']);
+
+        if ($request->has('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $comments = $query->orderBy('created_at', 'desc')->paginate(20);
 
         return response()->json($comments);
     }
@@ -131,6 +170,27 @@ class CommentController extends Controller
         Cache::flush();
 
         return response()->json($comment);
+    }
+
+    /**
+     * Reject comment (Admin only)
+     * 
+     * IPO Analysis:
+     * - INPUT: comment id
+     * - PROCESS: Update status to rejected
+     * - OUTPUT: JSON success message
+     */
+    public function reject(Request $request, $id)
+    {
+        if ($request->user()->role !== 'admin') {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $comment = Comment::findOrFail($id);
+        $comment->update(['status' => 'rejected']);
+        Cache::flush();
+
+        return response()->json(['message' => 'Comment rejected successfully']);
     }
 }
 

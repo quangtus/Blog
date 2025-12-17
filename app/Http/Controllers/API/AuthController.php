@@ -125,5 +125,27 @@ class AuthController extends Controller
     {
         return response()->json(Auth::user());
     }
+
+    /**
+     * Get dashboard statistics (Admin only)
+     * 
+     * IPO Analysis:
+     * - INPUT: None (admin auth required)
+     * - PROCESS: Count records from MongoDB
+     * - OUTPUT: JSON with stats
+     */
+    public function dashboardStats(Request $request)
+    {
+        $stats = [
+            'total_users' => User::count(),
+            'total_posts' => \App\Models\Post::count(),
+            'total_categories' => \App\Models\Category::count(),
+            'total_comments' => \App\Models\Comment::count(),
+            'pending_comments' => \App\Models\Comment::where('status', 'pending')->count(),
+            'published_posts' => \App\Models\Post::where('status', 'published')->count(),
+        ];
+
+        return response()->json($stats);
+    }
 }
 

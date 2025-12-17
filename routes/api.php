@@ -41,10 +41,18 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Admin routes
     Route::middleware('admin')->group(function () {
+        // Category CRUD
         Route::post('/categories', [CategoryController::class, 'store']);
         Route::put('/categories/{id}', [CategoryController::class, 'update']);
         Route::delete('/categories/{id}', [CategoryController::class, 'destroy']);
+        
+        // Comment management
+        Route::get('/admin/comments', [CommentController::class, 'adminIndex']);
         Route::post('/comments/{id}/approve', [CommentController::class, 'approve']);
+        Route::post('/comments/{id}/reject', [CommentController::class, 'reject']);
+        
+        // Dashboard stats
+        Route::get('/admin/stats', [AuthController::class, 'dashboardStats']);
     });
 });
 
